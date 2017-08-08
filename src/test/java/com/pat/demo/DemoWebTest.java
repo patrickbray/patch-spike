@@ -15,6 +15,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.annotation.Resource;
 
+import java.util.Collections;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -99,6 +101,33 @@ public class DemoWebTest {
 
         final Person expectedPerson = person;
         expectedPerson.setLastName(null);
+
+        assertEquals(expectedPerson, updatedPerson);
+    }
+
+    @Test
+    public void testPatchWith_NestedChildren() throws Exception {
+
+        final Person person = this.restTemplate.postForObject("/person",
+                generateRandomPerson(), Person.class
+        );
+
+        log.info("Created person {}", person);
+
+        assertNotNull(person);
+
+        final Person child = generateRandomPerson();
+        final Person patchUpdate = Person.builder().children(Collections.singletonList(child)).build();
+
+        log.info("Adding a child {}", child);
+
+        final Person updatedPerson =
+                restTemplate.patchForObject("/person/{id}", patchUpdate, Person.class, person.getId());
+
+        log.info("Updated person: {}", updatedPerson);
+
+        final Person expectedPerson = person;
+        person.getChildren().add(child);
 
         assertEquals(expectedPerson, updatedPerson);
     }
